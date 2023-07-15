@@ -3,10 +3,7 @@
 
 #include <BluetoothSerial.h>
 
-const char *pin;
-String device_name;
-
-BluetoothSerial SerialBT;
-void setupBT();
+extern BluetoothSerial SerialBT;
+void setupBT(void);
 
 #endif // BT_H_

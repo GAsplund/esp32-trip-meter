@@ -1,4 +1,4 @@
-#include "BluetoothSerial.h"
+#include <BluetoothSerial.h>
 
 //#define USE_PIN // Uncomment this to use PIN during pairing. The pin is specified on the line below
 const char *pin = "1234";
@@ -15,6 +15,6 @@ String device_name = "ESP32-BT-Slave";
 
 BluetoothSerial SerialBT;
 
-void setupBT() {
+void setupBT(void) {
   SerialBT.begin(device_name);
 }

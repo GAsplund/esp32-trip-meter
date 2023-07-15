@@ -1,7 +1,7 @@
 #ifndef TRIP_H_
 #define TRIP_H_
 
-#include <arduino.h>
+#include <Arduino.h>
 
 class Trip {
   public:
@@ -25,6 +25,6 @@ class Trip {
 
     volatile uint32_t totalRpmPulses;
     volatile uint32_t latestRpmTime;
-}
+};
 
 #endif // TRIP_H_
