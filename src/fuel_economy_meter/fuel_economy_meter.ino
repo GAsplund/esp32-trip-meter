@@ -2,7 +2,7 @@
 #include "bt.h"
 #include "elm327.h"
 
-Trip trip;
+static Trip trip;
 
 void IRAM_ATTR injChange(void *args) {
   trip.injChange();

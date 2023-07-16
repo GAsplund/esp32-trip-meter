@@ -32,7 +32,7 @@ String converttohex (int a, int decimals) {
   return temp;
 }
 
-Trip *trip;
+static Trip *trip;
 
 void setupELM327(Trip *inputTrip) {
   trip = inputTrip;
