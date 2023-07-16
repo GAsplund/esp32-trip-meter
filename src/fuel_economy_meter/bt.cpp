@@ -1,9 +1,5 @@
 #include <BluetoothSerial.h>
-
-//#define USE_PIN // Uncomment this to use PIN during pairing. The pin is specified on the line below
-const char *pin = "1234";
-
-String device_name = "ESP32-BT-Slave";
+#include "config.h"
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -16,5 +12,5 @@ String device_name = "ESP32-BT-Slave";
 BluetoothSerial SerialBT;
 
 void setupBT(void) {
-  SerialBT.begin(device_name);
+  SerialBT.begin(BT_DEVICE_NAME);
 }

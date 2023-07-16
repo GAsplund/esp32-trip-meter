@@ -2,6 +2,7 @@
 //#include <driver/mcpwm.h>
 #include <driver/pcnt.h>
 #include "esp_timer.h"
+#include "config.h"
 
 // GPIO Definitions
 #define INJ_GPIO GPIO_NUM_4
@@ -25,12 +26,6 @@ pcnt_config_t vssPcntConfig = {
     .channel = VSS_PCNT_CHAN
 };
 
-/*
- * Injector
- */
-
-#define DELTA_MAX 500000
-
 class Trip {
   public:
     Trip ();
@@ -39,9 +34,6 @@ class Trip {
 
     volatile uint64_t latestInjectionTime = 0;
     void injChange();
-
-    #define USEC_LITER 53454766.0
-    #define PULSE_KM 6840.0
 
     uint16_t getRpm(void);
     float getLiters(void);
@@ -89,7 +81,7 @@ void Trip::injChange() {
     this->totalInjectionPulses += 1;
   } else {
     uint64_t delta = esp_timer_get_time() - this->injOpenTimestamp;
-    if (delta < DELTA_MAX) {
+    if (delta < INJ_DELTA_MAX) {
       this->latestInjectionTime = delta;
       this->totalInjectionTime += this->latestInjectionTime;
     }
@@ -97,8 +89,8 @@ void Trip::injChange() {
 }
 
 uint16_t Trip::getRpm(void) { return this->totalInjectionPulses * 60; }
-float Trip::getLiters(void) { return this->totalInjectionTime / USEC_LITER; }
-float Trip::getKm(void) { return this->getVel() / PULSE_KM; }
+float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; }
+float Trip::getKm(void) { return this->getVel() / VSS_PULSE_KM; }
 float Trip::getKmh(void) { return this->getKm() * 3600; }
 float Trip::getEfficiency(float km, float liters) { return (liters * 100) / km; }
 
