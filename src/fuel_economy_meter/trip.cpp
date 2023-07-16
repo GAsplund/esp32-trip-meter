@@ -1,3 +1,5 @@
+#include "trip.h"
+
 #include <arduino.h>
 //#include <driver/mcpwm.h>
 #include <driver/pcnt.h>
@@ -24,32 +26,6 @@ pcnt_config_t vssPcntConfig = {
     .counter_l_lim = 0,
     .unit = VSS_PCNT_UNIT,
     .channel = VSS_PCNT_CHAN
-};
-
-class Trip {
-  public:
-    Trip ();
-
-    void begin(void (*injFunc)(void*));
-
-    volatile uint64_t latestInjectionTime = 0;
-    void injChange();
-
-    uint16_t getRpm(void);
-    float getLiters(void);
-    float getKm(void);
-    float getKmh(void);
-    float getEfficiency(float km, float liters);
-
-  private:
-    int16_t getVel();
-
-    volatile uint32_t totalInjectionPulses = 0;
-    volatile uint64_t totalInjectionTime = 0;
-    volatile uint64_t injOpenTimestamp = 0;
-
-    volatile uint32_t totalRpmPulses = 0;
-    volatile uint32_t latestRpmTime = 0;
 };
 
 Trip::Trip() {
