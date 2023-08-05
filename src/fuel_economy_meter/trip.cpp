@@ -67,11 +67,11 @@ void IRAM_ATTR Trip::updateTripInjISR()
 void Trip::vssPulse()
 {
   uint64_t pulseTimestamp = esp_timer_get_time();
-  uint64_t delta = pulseTimestamp - this->latestVssTime;
+  uint64_t delta = pulseTimestamp - this->latestVssTimestamp;
   if (delta < VSS_DELTA_MAX)
     this->latestVssPeriod = delta;
   this->totalVssPulses += 1;
-  this->latestVssTime = esp_timer_get_time();
+  this->latestVssTimestamp = esp_timer_get_time();
 }
 
 void IRAM_ATTR Trip::updateTripVssISR()
