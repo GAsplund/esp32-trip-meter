@@ -41,7 +41,7 @@ void Trip::injChange()
   if (gpio_get_level(INJ_GPIO) == 0)
   {
     uint64_t openTimestamp = esp_timer_get_time();
-    if (injOpenTimestamp > 0)
+    if (this->injOpenTimestamp > 0)
       this->latestInjectionPeriod = openTimestamp - this->injOpenTimestamp;
     this->injOpenTimestamp = openTimestamp;
     this->totalInjectionPulses += 1;
