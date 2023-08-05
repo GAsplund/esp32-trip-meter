@@ -27,7 +27,7 @@ Trip::Trip()
 }
 
 /**
- * Starts the VSS counter and adds interrupts for the injector and VSS sensor
+ * Starts the VSS interrupts and adds interrupts for the injector and VSS sensor
  */
 void Trip::begin()
 {
@@ -35,6 +35,17 @@ void Trip::begin()
   gpio_isr_handler_add(VSS_GPIO, Trip::updateTripVssISR, (void *)VSS_GPIO);
 }
 
+/**
+ * @brief Handles a pulse change in the injector signal
+ *
+ * Used to calculate total and momentary injection time.
+ * Injector is considered open when the signal is low due to MOSFET pulling it down.
+ * 
+ *     ╭―(+ Inj -)―╮
+ *     +           o - pull-down signal
+ *     -           / - MOSFET
+ *     ╰―――――――――――╯
+ */
 void Trip::injChange()
 {
   if (gpio_get_level(INJ_GPIO) == 0)
@@ -63,6 +74,15 @@ void IRAM_ATTR Trip::updateTripInjISR(void*)
     sTrip->injChange();
 }
 
+/**
+ * @brief Handles a pulse in the VSS signal
+ *
+ * Gets the timestamp of the pulse and calculates the period between the current and the last pulse.
+ * If the period is not too long, it is stored as the latest period.
+ *
+ * Since the period is only used to calculate velocity, the delta is not needed when the period is
+ * too long. (i.e. when the vehicle is stopped)
+ */
 void Trip::vssPulse()
 {
   uint64_t pulseTimestamp = esp_timer_get_time();
@@ -79,11 +99,56 @@ void IRAM_ATTR Trip::updateTripVssISR(void*)
     sTrip->vssPulse();
 }
 
+/**
+ * @brief Calculates current engine RPM
+ *
+ * Uses injector pulse period to calculate the rotation speed of the engine in RPM
+ *
+ * Given that one single injector fires per engine rotation, the RPM is calculated
+ * by dividing 60 seconds by the injector pulse period.
+ *
+ * Since f = 1/T, the formula is 60/T
+ * This implicitly converts from rotations per second (Hz) to rotations per minute.
+ * Since the injector pulse period is in microseconds, we multiply by 1e6 to get seconds.
+ *
+ * @return the current engine RPM
+ */
 uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 60000000 / this->latestInjectionPeriod : 0; }
 
+/**
+ * Calculates the total fuel spent
+ */
 float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; }
+
+/**
+ * Calculates the total distance traveled in km
+ */
 float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
+
+/**
+ * Calculates the velocity in km/h
+ */
 float Trip::getKmh(void) { return this->getVel() * 3600; }
+
+/**
+ * @brief Calculates the average efficiency
+ *
+ * Calculates the fuel efficiency based on the total distance traveled and the total fuel spent.
+ *
+ * Efficiency is calculated per km, which is multiplied 100 to get a proper efficiency value.
+ *
+ * @param km the distance traveled
+ * @param liters the amount of fuel spent
+ * @return the average efficiency in L/100km
+ */
 float Trip::getEfficiency(float km, float liters) { return (liters * 100) / km; }
 
+/**
+ * @brief Gets the amount of VSS pulses since last check
+ *
+ * Calculated using f = 1/T, where T is the latest VSS pulse period.
+ * We also multiply by 1e6 to convert from seconds to microseconds.
+ *
+ * @return the amount of VSS pulses per second based on the latest period
+ */
 int16_t Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000 / this->latestVssPeriod : 0; }
