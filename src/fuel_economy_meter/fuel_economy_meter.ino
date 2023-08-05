@@ -4,10 +4,6 @@
 
 static Trip trip;
 
-void IRAM_ATTR injChange(void *args) {
-  trip.injChange();
-}
-
 void setup()
 {
   Serial.begin(9600);
@@ -15,7 +11,7 @@ void setup()
   /*mcpwm_set_pin(VSS_MCPWM_UNIT, &vssMcpwmConfig);
   mcpwm_capture_enable(VSS_MCPWM_UNIT, VSS_MCPWM_CAP, VSS_MCPWM_EDGE, VSS_MCPWM_PNUM);*/
   setupBT();
-  trip.begin(&injChange);
+  trip.begin();
 
   Serial.println("Setup done");
 }
@@ -39,8 +35,10 @@ void loop()
   SerialBT.print(vol * 60);
   SerialBT.print(" L/h ");
 
-  if (velKmh > 1) SerialBT.print(eff);
-  else SerialBT.print("N/A");
+  if (velKmh > 1)
+    SerialBT.print(eff);
+  else
+    SerialBT.print("N/A");
 
   SerialBT.println(" L/100km");
 }

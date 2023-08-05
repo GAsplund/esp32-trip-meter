@@ -11,6 +11,7 @@
 
 BluetoothSerial SerialBT;
 
-void setupBT(void) {
+void setupBT(void)
+{
   SerialBT.begin(BT_DEVICE_NAME);
 }
