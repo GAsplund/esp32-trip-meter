@@ -12,7 +12,6 @@ public:
   Trip(void);
 
   void begin();
-  void injChange();
 
   uint16_t getRpm(void);
   float getLiters(void);
@@ -26,8 +25,11 @@ private:
   static Trip *sTrip;
 
   int16_t getVel();
-  static IRAM_ATTR void updateTripInjISR();
-  static IRAM_ATTR void updateTripVssISR();
+
+  static IRAM_ATTR void updateTripInjISR(void*);
+  static IRAM_ATTR void updateTripVssISR(void*);
+  void injChange();
+  void vssPulse();
 
   volatile uint32_t totalInjectionPulses = 0;
   volatile uint64_t totalInjectionTime = 0;

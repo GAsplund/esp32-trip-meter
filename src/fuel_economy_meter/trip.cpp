@@ -31,7 +31,6 @@ Trip::Trip()
  */
 void Trip::begin()
 {
-  pcnt_counter_resume(VSS_PCNT_UNIT);
   gpio_isr_handler_add(INJ_GPIO, Trip::updateTripInjISR, (void *)INJ_GPIO);
   gpio_isr_handler_add(VSS_GPIO, Trip::updateTripVssISR, (void *)VSS_GPIO);
 }
@@ -58,7 +57,7 @@ void Trip::injChange()
   }
 }
 
-void IRAM_ATTR Trip::updateTripInjISR()
+void IRAM_ATTR Trip::updateTripInjISR(void*)
 {
   if (sTrip != 0)
     sTrip->injChange();
@@ -74,7 +73,7 @@ void Trip::vssPulse()
   this->latestVssTimestamp = esp_timer_get_time();
 }
 
-void IRAM_ATTR Trip::updateTripVssISR()
+void IRAM_ATTR Trip::updateTripVssISR(void*)
 {
   if (sTrip != 0)
     sTrip->vssPulse();
@@ -83,8 +82,8 @@ void IRAM_ATTR Trip::updateTripVssISR()
 uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 60000000 / this->latestInjectionPeriod : 0; }
 
 float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; }
-float Trip::getKm(void) { return this->getVel() / VSS_PULSE_KM; }
-float Trip::getKmh(void) { return this->getKm() * 3600; }
+float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
+float Trip::getKmh(void) { return this->getVel() * 3600; }
 float Trip::getEfficiency(float km, float liters) { return (liters * 100) / km; }
 
 int16_t Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000 / this->latestVssPeriod : 0; }
