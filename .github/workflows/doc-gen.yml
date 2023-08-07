@@ -1,0 +1,52 @@
+name: Documentation
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  compile:
+    name: Compile
+
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        uses: actions/checkout@v3
+      - 
+        name: Generate Doxygen
+        uses: mattnotmitt/doxygen-action@v1.9.5
+        with:
+      doxyfile-path: 'doc/Doxygen'
+      -
+        name: Cache documentation
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions/cache/save@v3
+        with:
+          path: docs/output/html
+          key: docs-${{ github.sha }}
+
+  push:
+    name: Push to Pages
+
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: [compile]
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+    -
+      name: Fetch documentation cache
+      uses: actions/cache/restore@v3
+      with:
+        path: _site
+        key: docs-${{ github.sha }}
+    -
+      name: Upload GitHub Pages artifact
+      uses: actions/upload-pages-artifact@v1.0.8
+    -
+      name: Deploy GitHub Pages
+      uses: actions/deploy-pages@v1
