@@ -9,9 +9,7 @@
 class Trip
 {
 public:
-  Trip(void);
-
-  void begin();
+  void begin(void);
 
   uint16_t getRpm(void);
   float getLiters(void);

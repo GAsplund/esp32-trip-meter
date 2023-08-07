@@ -6,7 +6,10 @@
 
 Trip *Trip::sTrip = 0;
 
-Trip::Trip()
+/**
+ * Starts the VSS interrupts and adds interrupts for the injector and VSS sensor
+ */
+void Trip::begin(void)
 {
   sTrip = this;
 
@@ -24,13 +27,7 @@ Trip::Trip()
   gpio_install_isr_service(0);
   gpio_set_intr_type(INJ_GPIO, GPIO_INTR_ANYEDGE);
   gpio_set_intr_type(VSS_GPIO, GPIO_INTR_POSEDGE);
-}
 
-/**
- * Starts the VSS interrupts and adds interrupts for the injector and VSS sensor
- */
-void Trip::begin()
-{
   gpio_isr_handler_add(INJ_GPIO, Trip::updateTripInjISR, (void *)INJ_GPIO);
   gpio_isr_handler_add(VSS_GPIO, Trip::updateTripVssISR, (void *)VSS_GPIO);
 }
