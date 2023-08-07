@@ -17,7 +17,7 @@ jobs:
         name: Generate Doxygen
         uses: mattnotmitt/doxygen-action@v1.9.5
         with:
-          doxyfile-path: 'doc/Doxygen'
+          doxyfile-path: 'doc/Doxyfile'
       -
         name: Cache documentation
         if: ${{ github.ref == 'refs/heads/main' }}
