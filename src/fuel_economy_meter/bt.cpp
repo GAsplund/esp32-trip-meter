@@ -11,6 +11,9 @@
 
 BluetoothSerial SerialBT;
 
+/**
+ * @brief Starts Bluetooth serial with the given device name
+ */
 void setupBT(void)
 {
   SerialBT.begin(BT_DEVICE_NAME);

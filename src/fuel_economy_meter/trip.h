@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 /**
- * Class for handling fuel and velocity calculations
+ * @brief Class for handling fuel and velocity calculations
  */
 class Trip
 {
