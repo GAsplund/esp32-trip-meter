@@ -118,6 +118,16 @@ uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 6000000
 float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; }
 
 /**
+ * @brief Calculates the duty cycle on the injector
+ */
+float Trip::getDuty(void) { return (this->latestInjectionPeriod > 0) ? (float) this->latestInjectionTime / (float) this->latestInjectionPeriod : 0; }
+
+/**
+ * @brief Calculates momentary fuel consumption
+ */
+float Trip::getLph(void) { return (3600000000.0 * getDuty()) / INJ_USEC_LITER; }
+
+/**
  * Calculates the total distance traveled in km
  */
 float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
@@ -125,27 +135,27 @@ float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
 /**
  * Calculates the velocity in km/h
  */
-float Trip::getKmh(void) { return this->getVel() * 3600; }
+float Trip::getKmh(void) { return (esp_timer_get_time() - this->latestVssTimestamp > VSS_DELTA_MAX) ? 0 : (this->getVel() / VSS_PULSE_KM) * 3600; }
 
 /**
- * @brief Calculates the average efficiency
+ * @brief Calculates the momentary fuel efficiency
  *
- * Calculates the fuel efficiency based on the total distance traveled and the total fuel spent.
+ * Calculates the fuel efficiency based on the velocity and fuel consumption rate.
+ * Efficiency is calculated per km, which is multiplied by 100 to get a proper efficiency value.
  *
- * Efficiency is calculated per km, which is multiplied 100 to get a proper efficiency value.
- *
- * @param km the distance traveled
- * @param liters the amount of fuel spent
- * @return the average efficiency in L/100km
+ * @return the momentary efficiency in L/100km
  */
-float Trip::getEfficiency(float km, float liters) { return (liters * 100) / km; }
+float Trip::getEfficiency() { 
+  float kmh = this->getKmh();
+  return (kmh > 0) ? (this->getLph() * 100) / kmh : 0;
+}
 
 /**
- * @brief Gets the amount of VSS pulses since last check
+ * @brief Gets the amount of VSS pulses per second
  *
  * Calculated using f = 1/T, where T is the latest VSS pulse period.
  * We also multiply by 1e6 to convert from seconds to microseconds.
  *
  * @return the amount of VSS pulses per second based on the latest period
  */
-int16_t Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000 / this->latestVssPeriod : 0; }
+float Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000.0 / this->latestVssPeriod : 0; }

@@ -12,10 +12,8 @@ void LogStream::begin(Stream *inputStream, Trip *inputTrip)
 void LogStream::log()
 {
   float velKmh = trip->getKmh();
-  float distKm = trip->getKm();
-  float vol = trip->getLiters();
-
-  float eff = trip->getEfficiency(distKm, vol);
+  float lph = trip->getLph();
+  float eff = trip->getEfficiency();
 
   stream->print(trip->latestInjectionTime);
   stream->print(" uS/inj ");
@@ -23,7 +21,7 @@ void LogStream::log()
   stream->print(" RPM ");
   stream->print(velKmh);
   stream->print(" km/h ");
-  stream->print(vol * 60);
+  stream->print(lph);
   stream->print(" L/h ");
 
   if (velKmh > 1)

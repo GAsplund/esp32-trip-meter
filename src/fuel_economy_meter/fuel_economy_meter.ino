@@ -10,10 +10,13 @@ static LogStream logStream;
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("BT");
   setupBT();
+  Serial.println("Trip");
   trip.begin();
   //elm327.begin(&SerialBT, &trip);
-  logStream.begin(&Serial, &trip);
+  Serial.println("LogStream");
+  logStream.begin(&SerialBT, &trip);
 
   Serial.println("Setup done");
 }

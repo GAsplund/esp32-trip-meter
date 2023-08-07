@@ -15,14 +15,16 @@ public:
   float getLiters(void);
   float getKm(void);
   float getKmh(void);
-  float getEfficiency(float km, float liters);
+  float getEfficiency();
+  float getLph(void);
 
   volatile uint64_t latestInjectionTime = 0; /// The duty time of the last injection pulse
 
 private:
   static Trip *sTrip;
 
-  int16_t getVel();
+  float getVel();
+  float getDuty(void);
 
   static IRAM_ATTR void updateTripInjISR(void*);
   static IRAM_ATTR void updateTripVssISR(void*);
