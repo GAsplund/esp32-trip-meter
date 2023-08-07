@@ -42,7 +42,7 @@ jobs:
       name: Fetch documentation cache
       uses: actions/cache/restore@v3
       with:
-        path: _site
+        path: doc/output/html
         key: docs-${{ github.sha }}
     -
       name: Upload GitHub Pages artifact
@@ -50,3 +50,5 @@ jobs:
     -
       name: Deploy GitHub Pages
       uses: actions/deploy-pages@v1
+      with:
+        path: doc/output/html
