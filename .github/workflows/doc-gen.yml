@@ -23,7 +23,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions/cache/save@v3
         with:
-          path: docs/output/html
+          path: doc/output/html
           key: docs-${{ github.sha }}
 
   push:
