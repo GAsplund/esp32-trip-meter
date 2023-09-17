@@ -3,6 +3,8 @@
 #include <arduino.h>
 #include "esp_timer.h"
 #include "config.h"
+#include "driver/mcpwm.h"
+#include "driver/timer.h"
 
 Trip *Trip::sTrip = 0;
 
@@ -13,23 +15,31 @@ void Trip::begin(void)
 {
   sTrip = this;
 
+  Serial.println("Setting up timers");
+  timer_init(TIMER_GROUP_0, TIMER_0, &timeout_timer_conf);
+  timer_init(TIMER_GROUP_0, TIMER_1, &timeout_timer_conf);
+  timer_set_counter_value(TIMER_GROUP_0, TIMER_0, INJ_TICKS_TIMEOUT);
+  timer_set_counter_value(TIMER_GROUP_0, TIMER_1, VSS_TICKS_TIMEOUT);
+  timer_isr_callback_add(TIMER_GROUP_0, TIMER_0, &Trip::timeoutInjISR, NULL, 0);
+  timer_isr_callback_add(TIMER_GROUP_0, TIMER_1, &Trip::timeoutVssISR, NULL, 0);
+
   Serial.println("Setting up injector ISR");
-  gpio_pad_select_gpio(INJ_GPIO);
-  gpio_set_direction(INJ_GPIO, GPIO_MODE_INPUT);
   gpio_set_pull_mode(INJ_GPIO, GPIO_PULLUP_ONLY);
+  mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM_CAP_0, INJ_GPIO);
+  mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM_CAP_1, INJ_GPIO);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP0, &inj_cap0_conf);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP1, &inj_cap1_conf);
 
   Serial.println("Setting up VSS ISR");
-  gpio_pad_select_gpio(VSS_GPIO);
-  gpio_set_direction(VSS_GPIO, GPIO_MODE_INPUT);
   gpio_set_pull_mode(VSS_GPIO, GPIO_PULLUP_ONLY);
+  mcpwm_gpio_init(MCPWM_UNIT_1, MCPWM_CAP_0, VSS_GPIO);
+  mcpwm_gpio_init(MCPWM_UNIT_1, MCPWM_CAP_1, VSS_GPIO);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP0, &vss_cap0_conf);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP1, &vss_cap1_conf);
 
-  Serial.println("Enabling ISR");
-  gpio_install_isr_service(0);
-  gpio_set_intr_type(INJ_GPIO, GPIO_INTR_ANYEDGE);
-  gpio_set_intr_type(VSS_GPIO, GPIO_INTR_POSEDGE);
-
-  gpio_isr_handler_add(INJ_GPIO, Trip::updateTripInjISR, (void *)INJ_GPIO);
-  gpio_isr_handler_add(VSS_GPIO, Trip::updateTripVssISR, (void *)VSS_GPIO);
+  Serial.println("Starting timers");
+  timer_start(TIMER_GROUP_0, TIMER_0);
+  timer_start(TIMER_GROUP_0, TIMER_1);
 }
 
 /**
@@ -44,34 +54,42 @@ void Trip::begin(void)
  *     -           / - ECU MOSFET
  *     ╰―――――――――――╯
  */
-void Trip::injChange()
+void Trip::injChange(uint32_t openCap, uint32_t closeCap)
 {
-  uint64_t now = esp_timer_get_time();
+  timer_set_counter_value(TIMER_GROUP_0, TIMER_0, INJ_TICKS_TIMEOUT);
 
-  if (gpio_get_level(INJ_GPIO) == 0)
-  { // Injector has opened
-    if (this->injOpenTimestamp > 0)
-      this->latestInjectionPeriod = now - this->injOpenTimestamp;
-    
-    this->injOpenTimestamp = now;
-    this->totalInjectionPulses++;
+  // Make sure that the injector has been open before
+  // We also don't know how many times we could have 
+  // overflowed before, so we discard any additional captures
+  if (this->latestInjectionTimestamp == 0)
+  {
+    this->latestInjectionTimestamp = openCap;
+    return;
   }
-  else
-  { // Injector has closed
-    uint64_t dutyTime = now - this->injOpenTimestamp;
 
-    if (dutyTime < INJ_DELTA_MAX)
-    {
-      this->latestInjectionDutyTime = dutyTime;
-      this->totalInjectionTime += this->latestInjectionDutyTime;
-    }
+  uint32_t dutyTime = closeCap > openCap ?
+    (0xFFFFFFFF - closeCap) + openCap + 1:
+    openCap - closeCap;
+
+  if (dutyTime <= INJ_DELTA_MAX)
+  {
+    this->latestInjectionDutyTime = dutyTime;
+    this->latestInjectionPeriod = openCap - this->latestInjectionTimestamp;
   }
+  
+  this->latestInjectionTimestamp = openCap;
 }
 
-void IRAM_ATTR Trip::updateTripInjISR(void*)
+// 0 1 2 3 4 5 6 7
+// 0 2 0 0 0 1 0 0
+// Max = 7
+// (7 - 5) + 1 + 1
+
+//void IRAM_ATTR Trip::updateTripInjISR(void*)
+bool IRAM_ATTR Trip::updateTripInjISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
 {
   if (sTrip != 0)
-    sTrip->injChange();
+    sTrip->injChange(mcpwm_capture_signal_get_value(MCPWM_UNIT_0, MCPWM_SELECT_CAP0), edata->cap_value);
 }
 
 /**
@@ -83,21 +101,64 @@ void IRAM_ATTR Trip::updateTripInjISR(void*)
  * Since the period is only used to calculate velocity, the delta is not needed when the period is
  * too long. (i.e. when the vehicle is stopped)
  */
-void Trip::vssPulse()
+void Trip::vssPulse(uint32_t upCap, uint32_t downCap)
 {
-  uint64_t now = esp_timer_get_time();
-
-  uint64_t period = now - this->latestVssTimestamp;
-  if (period < VSS_DELTA_MAX) this->latestVssPeriod = period;
-
+  timer_set_counter_value(TIMER_GROUP_0, TIMER_1, VSS_TICKS_TIMEOUT);
   this->totalVssPulses++;
-  this->latestVssTimestamp = now;
-}
 
-void IRAM_ATTR Trip::updateTripVssISR(void*)
+  if(isStopped)
+  {
+    isStopped = false;
+    return;
+  }
+
+  uint32_t period = 2 * (upCap > downCap ?
+    (0xFFFFFFFF - upCap) + downCap + 1:
+    downCap - upCap);
+
+  if (period < VSS_DELTA_MAX)
+    this->latestVssPeriod = period;
+}
+bool IRAM_ATTR Trip::updateTripVssISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
+//void IRAM_ATTR Trip::updateTripVssISR(void*)
 {
   if (sTrip != 0)
-    sTrip->vssPulse();
+    sTrip->vssPulse(mcpwm_capture_signal_get_value(MCPWM_UNIT_1, MCPWM_SELECT_CAP0), edata->cap_value);
+}
+
+/**
+ * @brief Handles a timeout in the injector signal
+ *
+ * Used to calculate the total RPM of the engine.
+ * If the injector has not opened for a long time, the engine is considered to be stopped.
+ */
+void Trip::timeoutInj()
+{
+  this->latestInjectionPeriod = 0;
+  this->latestInjectionDutyTime = 0;
+  this->latestInjectionTimestamp = 0;
+}
+bool IRAM_ATTR Trip::timeoutInjISR(void*)
+{
+  if (sTrip != 0)
+    sTrip->timeoutInj();
+}
+
+/**
+ * @brief Handles a timeout in the VSS signal
+ *
+ * Used to calculate the total velocity of the vehicle.
+ * If the VSS signal has not pulsed for a long time, the vehicle is considered to be stopped.
+ */
+void Trip::timeoutVss()
+{
+  this->latestVssPeriod = 0;
+  this->isStopped = true;
+}
+bool IRAM_ATTR Trip::timeoutVssISR(void*)
+{
+  if (sTrip != 0)
+    sTrip->timeoutVss();
 }
 
 /**
@@ -139,7 +200,7 @@ float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
 /**
  * Calculates the velocity in km/h
  */
-float Trip::getKmh(void) { return (esp_timer_get_time() - this->latestVssTimestamp > VSS_DELTA_MAX) ? 0 : (this->getVel() / VSS_PULSE_KM) * 3600; }
+float Trip::getKmh(void) { return (this->latestVssPeriod > 0) ? (this->getVel() / VSS_PULSE_KM) * 3600 : 0; }
 
 /**
  * @brief Calculates the momentary fuel efficiency
@@ -162,4 +223,4 @@ float Trip::getEfficiency() {
  *
  * @return the amount of VSS pulses per second based on the latest period
  */
-float Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000.0 / this->latestVssPeriod : 0; }
+float Trip::getVel() { return this->isStopped ? 0 : 1000000.0 / this->latestVssPeriod; }
