@@ -80,11 +80,6 @@ void Trip::injChange(uint32_t openCap, uint32_t closeCap)
   this->latestInjectionTimestamp = openCap;
 }
 
-// 0 1 2 3 4 5 6 7
-// 0 2 0 0 0 1 0 0
-// Max = 7
-// (7 - 5) + 1 + 1
-
 //void IRAM_ATTR Trip::updateTripInjISR(void*)
 bool IRAM_ATTR Trip::updateTripInjISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
 {
