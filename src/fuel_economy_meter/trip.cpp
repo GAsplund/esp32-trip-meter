@@ -40,7 +40,8 @@ void Trip::begin(void)
  * 
  *     ╭―(+ Inj -)―╮
  *     +           o - pull-down signal
- *     -           / - MOSFET
+ *     |           |
+ *     -           / - ECU MOSFET
  *     ╰―――――――――――╯
  */
 void Trip::injChange()
