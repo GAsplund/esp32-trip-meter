@@ -18,7 +18,7 @@ public:
   float getEfficiency();
   float getLph(void);
 
-  volatile uint64_t latestInjectionTime = 0; /// The duty time of the last injection pulse
+  volatile uint64_t latestInjectionDutyTime = 0; /// The duty time of the last injection pulse
 
 private:
   static Trip *sTrip;

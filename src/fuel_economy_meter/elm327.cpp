@@ -125,7 +125,7 @@ void ELM327::poll(void)
     }
     if (OBDCommand == "14")
     {                                                      // This can be any value. Make your own table with PID's, names, length and formulas
-      OBDReturn = "61" + OBDCommand + converttohex(trip->latestInjectionTime, 4); // 61 means return Mode 21 value + 40hex. Make sure length return conforms with formula in Torque
+      OBDReturn = "61" + OBDCommand + converttohex(trip->latestInjectionDutyTime, 4); // 61 means return Mode 21 value + 40hex. Make sure length return conforms with formula in Torque
     }
     if (OBDCommand == "15")
     {                                                      // This can be any value. Make your own table with PID's, names, length and formulas

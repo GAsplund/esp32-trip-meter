@@ -45,22 +45,24 @@ void Trip::begin(void)
  */
 void Trip::injChange()
 {
+  uint64_t now = esp_timer_get_time();
+
   if (gpio_get_level(INJ_GPIO) == 0)
-  {
-    uint64_t openTimestamp = esp_timer_get_time();
+  { // Injector has opened
     if (this->injOpenTimestamp > 0)
-      this->latestInjectionPeriod = openTimestamp - this->injOpenTimestamp;
-    this->injOpenTimestamp = openTimestamp;
-    this->totalInjectionPulses += 1;
+      this->latestInjectionPeriod = now - this->injOpenTimestamp;
+    
+    this->injOpenTimestamp = now;
+    this->totalInjectionPulses++;
   }
   else
-  {
-    uint64_t delta = esp_timer_get_time() - this->injOpenTimestamp;
+  { // Injector has closed
+    uint64_t dutyTime = now - this->injOpenTimestamp;
 
-    if (delta < INJ_DELTA_MAX)
+    if (dutyTime < INJ_DELTA_MAX)
     {
-      this->latestInjectionTime = delta;
-      this->totalInjectionTime += this->latestInjectionTime;
+      this->latestInjectionDutyTime = dutyTime;
+      this->totalInjectionTime += this->latestInjectionDutyTime;
     }
   }
 }
@@ -82,12 +84,13 @@ void IRAM_ATTR Trip::updateTripInjISR(void*)
  */
 void Trip::vssPulse()
 {
-  uint64_t pulseTimestamp = esp_timer_get_time();
-  uint64_t delta = pulseTimestamp - this->latestVssTimestamp;
-  if (delta < VSS_DELTA_MAX)
-    this->latestVssPeriod = delta;
-  this->totalVssPulses += 1;
-  this->latestVssTimestamp = esp_timer_get_time();
+  uint64_t now = esp_timer_get_time();
+
+  uint64_t period = now - this->latestVssTimestamp;
+  if (period < VSS_DELTA_MAX) this->latestVssPeriod = period;
+
+  this->totalVssPulses++;
+  this->latestVssTimestamp = now;
 }
 
 void IRAM_ATTR Trip::updateTripVssISR(void*)
@@ -120,7 +123,7 @@ float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; 
 /**
  * @brief Calculates the duty cycle on the injector
  */
-float Trip::getDuty(void) { return (this->latestInjectionPeriod > 0) ? (float) this->latestInjectionTime / (float) this->latestInjectionPeriod : 0; }
+float Trip::getDuty(void) { return (this->latestInjectionPeriod > 0) ? (float) this->latestInjectionDutyTime / (float) this->latestInjectionPeriod : 0; }
 
 /**
  * @brief Calculates momentary fuel consumption
