@@ -6,6 +6,8 @@
 #include "driver/mcpwm.h"
 #include "driver/timer.h"
 
+#define APB_TICK_US(ticks) (ticks / (APB_CLK_FREQ / 1000000))
+
 Trip *Trip::sTrip = 0;
 
 /**
@@ -73,8 +75,8 @@ void Trip::injChange(uint32_t openCap, uint32_t closeCap)
 
   if (dutyTime <= INJ_DELTA_MAX)
   {
-    this->latestInjectionDutyTime = dutyTime;
-    this->latestInjectionPeriod = openCap - this->latestInjectionTimestamp;
+    this->latestInjectionDutyTime = APB_TICK_US(dutyTime);
+    this->latestInjectionPeriod = APB_TICK_US(openCap - this->latestInjectionTimestamp);
   }
   
   this->latestInjectionTimestamp = openCap;
@@ -112,7 +114,7 @@ void Trip::vssPulse(uint32_t upCap, uint32_t downCap)
     downCap - upCap);
 
   if (period < VSS_DELTA_MAX)
-    this->latestVssPeriod = period;
+    this->latestVssPeriod = APB_TICK_US(period);
 }
 bool IRAM_ATTR Trip::updateTripVssISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
 //void IRAM_ATTR Trip::updateTripVssISR(void*)
@@ -185,7 +187,7 @@ float Trip::getDuty(void) { return (this->latestInjectionPeriod > 0) ? (float) t
 /**
  * @brief Calculates momentary fuel consumption
  */
-float Trip::getLph(void) { return (3600000000.0 * getDuty()) / INJ_USEC_LITER; }
+float Trip::getLph(void) { return (3.6E9 * getDuty()) / INJ_USEC_LITER; }
 
 /**
  * Calculates the total distance traveled in km
