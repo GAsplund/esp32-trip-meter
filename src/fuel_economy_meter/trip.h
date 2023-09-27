@@ -28,15 +28,15 @@ private:
   float getVel();
   float getDuty(void);
 
-  //static IRAM_ATTR void updateTripInjISR(void*);
-  //static IRAM_ATTR void updateTripVssISR(void*);
-  static IRAM_ATTR bool updateTripInjISR(mcpwm_unit_t, mcpwm_capture_channel_id_t, const cap_event_data_t *, void *);
-  static IRAM_ATTR bool updateTripVssISR(mcpwm_unit_t, mcpwm_capture_channel_id_t, const cap_event_data_t *, void *);
+  //static IRAM_ATTR void tripInjISR(void*);
+  //static IRAM_ATTR void tripVssISR(void*);
+  static IRAM_ATTR bool tripInjISR(mcpwm_unit_t, mcpwm_capture_channel_id_t, const cap_event_data_t *, void *);
+  static IRAM_ATTR bool tripVssISR(mcpwm_unit_t, mcpwm_capture_channel_id_t, const cap_event_data_t *, void *);
 
   static IRAM_ATTR bool timeoutInjISR(void*);
   static IRAM_ATTR bool timeoutVssISR(void*);
 
-  void injChange(uint32_t, uint32_t);
+  void injPulse(uint32_t, uint32_t);
   void vssPulse(uint32_t, uint32_t);
   void timeoutInj();
   void timeoutVss();
@@ -60,17 +60,17 @@ private:
 
   const mcpwm_capture_config_t inj_cap1_conf = {
     .cap_edge = MCPWM_POS_EDGE,
-    .capture_cb = Trip::updateTripInjISR
+    .capture_cb = Trip::tripInjISR
   };
 
   const mcpwm_capture_config_t vss_cap0_conf = {
     .cap_edge = MCPWM_POS_EDGE,
-    .capture_cb = Trip::updateTripVssISR
+    .capture_cb = Trip::tripVssISR
   };
 
   const mcpwm_capture_config_t vss_cap1_conf = {
     .cap_edge = MCPWM_NEG_EDGE,
-    .capture_cb = Trip::updateTripVssISR
+    .capture_cb = Trip::tripVssISR
   };
 
   const timer_config_t timeout_timer_conf = {

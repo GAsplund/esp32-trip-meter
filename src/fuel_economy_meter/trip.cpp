@@ -45,7 +45,7 @@ void Trip::begin(void)
 }
 
 /**
- * @brief Handles a pulse change in the injector signal
+ * @brief Handles a pulse in the injector signal
  *
  * Used to calculate total and momentary injection time.
  * Injector is considered open when the signal is low due to MOSFET pulling it down.
@@ -56,7 +56,7 @@ void Trip::begin(void)
  *     -           / - ECU MOSFET
  *     ╰―――――――――――╯
  */
-void Trip::injChange(uint32_t openCap, uint32_t closeCap)
+void Trip::injPulse(uint32_t openCap, uint32_t closeCap)
 {
   timer_set_counter_value(TIMER_GROUP_0, TIMER_0, INJ_TICKS_TIMEOUT);
 
@@ -83,20 +83,17 @@ void Trip::injChange(uint32_t openCap, uint32_t closeCap)
 }
 
 //void IRAM_ATTR Trip::updateTripInjISR(void*)
-bool IRAM_ATTR Trip::updateTripInjISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
+bool IRAM_ATTR Trip::tripInjISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
 {
   if (sTrip != 0)
-    sTrip->injChange(mcpwm_capture_signal_get_value(MCPWM_UNIT_0, MCPWM_SELECT_CAP0), edata->cap_value);
+    sTrip->injPulse(mcpwm_capture_signal_get_value(MCPWM_UNIT_0, MCPWM_SELECT_CAP0), edata->cap_value);
 }
 
 /**
  * @brief Handles a pulse in the VSS signal
  *
- * Gets the timestamp of the pulse and calculates the period between the current and the last pulse.
- * If the period is not too long, it is stored as the latest period.
- *
- * Since the period is only used to calculate velocity, the delta is not needed when the period is
- * too long. (i.e. when the vehicle is stopped)
+ * Uses the length of the pulse to calculate the velocity of the vehicle.
+ * If the time since the last pulse isn't too long, the pulse is considered to be valid.
  */
 void Trip::vssPulse(uint32_t upCap, uint32_t downCap)
 {
@@ -109,6 +106,7 @@ void Trip::vssPulse(uint32_t upCap, uint32_t downCap)
     return;
   }
 
+  // We assume that the HIGH time is always half a period
   uint32_t period = 2 * (upCap > downCap ?
     (0xFFFFFFFF - upCap) + downCap + 1:
     downCap - upCap);
@@ -116,8 +114,8 @@ void Trip::vssPulse(uint32_t upCap, uint32_t downCap)
   if (period < VSS_DELTA_MAX)
     this->latestVssPeriod = APB_TICK_US(period);
 }
-bool IRAM_ATTR Trip::updateTripVssISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
-//void IRAM_ATTR Trip::updateTripVssISR(void*)
+
+bool IRAM_ATTR Trip::tripVssISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data)
 {
   if (sTrip != 0)
     sTrip->vssPulse(mcpwm_capture_signal_get_value(MCPWM_UNIT_1, MCPWM_SELECT_CAP0), edata->cap_value);
@@ -135,6 +133,7 @@ void Trip::timeoutInj()
   this->latestInjectionDutyTime = 0;
   this->latestInjectionTimestamp = 0;
 }
+
 bool IRAM_ATTR Trip::timeoutInjISR(void*)
 {
   if (sTrip != 0)
@@ -152,6 +151,7 @@ void Trip::timeoutVss()
   this->latestVssPeriod = 0;
   this->isStopped = true;
 }
+
 bool IRAM_ATTR Trip::timeoutVssISR(void*)
 {
   if (sTrip != 0)
@@ -172,7 +172,7 @@ bool IRAM_ATTR Trip::timeoutVssISR(void*)
  *
  * @return the current engine RPM
  */
-uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 60000000 / this->latestInjectionPeriod : 0; }
+uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? (60 * 1000000) / this->latestInjectionPeriod : 0; }
 
 /**
  * Calculates the total fuel spent
