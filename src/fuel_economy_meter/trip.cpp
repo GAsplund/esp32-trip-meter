@@ -8,7 +8,7 @@
 
 #define APB_TICK_US(ticks) (ticks / (APB_CLK_FREQ / 1000000))
 
-Trip *Trip::sTrip = 0;
+Trip *sTrip = 0;
 
 /**
  * Starts the VSS interrupts and adds interrupts for the injector and VSS sensor
@@ -87,6 +87,7 @@ bool IRAM_ATTR Trip::tripInjISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t c
 {
   if (sTrip != 0)
     sTrip->injPulse(mcpwm_capture_signal_get_value(MCPWM_UNIT_0, MCPWM_SELECT_CAP0), edata->cap_value);
+  return false;
 }
 
 /**
@@ -119,6 +120,7 @@ bool IRAM_ATTR Trip::tripVssISR(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t c
 {
   if (sTrip != 0)
     sTrip->vssPulse(mcpwm_capture_signal_get_value(MCPWM_UNIT_1, MCPWM_SELECT_CAP0), edata->cap_value);
+  return false;
 }
 
 /**
@@ -138,6 +140,7 @@ bool IRAM_ATTR Trip::timeoutInjISR(void*)
 {
   if (sTrip != 0)
     sTrip->timeoutInj();
+  return false;
 }
 
 /**
@@ -156,6 +159,7 @@ bool IRAM_ATTR Trip::timeoutVssISR(void*)
 {
   if (sTrip != 0)
     sTrip->timeoutVss();
+  return false;
 }
 
 /**

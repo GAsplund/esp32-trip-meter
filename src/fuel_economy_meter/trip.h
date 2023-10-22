@@ -23,8 +23,6 @@ public:
   volatile uint64_t latestInjectionDutyTime = 0; /// The duty time of the last injection pulse
 
 private:
-  static Trip *sTrip;
-
   float getVel();
   float getDuty(void);
 
@@ -65,7 +63,7 @@ private:
 
   const mcpwm_capture_config_t vss_cap0_conf = {
     .cap_edge = MCPWM_POS_EDGE,
-    .capture_cb = Trip::tripVssISR
+    .capture_cb = NULL
   };
 
   const mcpwm_capture_config_t vss_cap1_conf = {
@@ -78,7 +76,8 @@ private:
     .counter_en = TIMER_PAUSE,
     .intr_type = TIMER_INTR_LEVEL,
     .counter_dir = TIMER_COUNT_DOWN,
-    .auto_reload = TIMER_AUTORELOAD_DIS
+    .auto_reload = TIMER_AUTORELOAD_DIS,
+    .divider = 2
   };
 
 };
