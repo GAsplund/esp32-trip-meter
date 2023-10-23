@@ -36,8 +36,8 @@ void Trip::begin(void)
   gpio_set_pull_mode(VSS_GPIO, GPIO_PULLUP_ONLY);
   mcpwm_gpio_init(MCPWM_UNIT_1, MCPWM_CAP_0, VSS_GPIO);
   mcpwm_gpio_init(MCPWM_UNIT_1, MCPWM_CAP_1, VSS_GPIO);
-  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP0, &vss_cap0_conf);
-  mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP1, &vss_cap1_conf);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_1, MCPWM_SELECT_CAP0, &vss_cap0_conf);
+  mcpwm_capture_enable_channel(MCPWM_UNIT_1, MCPWM_SELECT_CAP1, &vss_cap1_conf);
 
   Serial.println("Starting timers");
   timer_start(TIMER_GROUP_0, TIMER_0);
@@ -69,9 +69,9 @@ void Trip::injPulse(uint32_t openCap, uint32_t closeCap)
     return;
   }
 
-  uint32_t dutyTime = closeCap > openCap ?
-    (0xFFFFFFFF - closeCap) + openCap + 1:
-    openCap - closeCap;
+  uint32_t dutyTime = openCap > closeCap ?
+    (0xFFFFFFFF - openCap) + closeCap + 1:
+    closeCap - openCap;
 
   if (dutyTime <= INJ_DELTA_MAX)
   {
