@@ -11,14 +11,14 @@ class Trip
 public:
   void begin(void);
 
-  uint16_t getRpm(void);
+  uint_fast16_t getRpm(void);
   float getLiters(void);
   float getKm(void);
   float getKmh(void);
   float getEfficiency();
   float getLph(void);
 
-  volatile uint64_t latestInjectionTime = 0; /// The duty time of the last injection pulse
+  volatile uint32_t latestInjectionTime = 0; /// The duty time of the last injection pulse
 
 private:
   static Trip *sTrip;

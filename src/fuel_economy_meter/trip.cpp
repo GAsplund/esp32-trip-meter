@@ -45,17 +45,17 @@ void Trip::begin(void)
  */
 void Trip::injChange()
 {
+  uint64_t changeTimestamp = esp_timer_get_time();
   if (gpio_get_level(INJ_GPIO) == 0)
   {
-    uint64_t openTimestamp = esp_timer_get_time();
     if (this->injOpenTimestamp > 0)
-      this->latestInjectionPeriod = openTimestamp - this->injOpenTimestamp;
-    this->injOpenTimestamp = openTimestamp;
+      this->latestInjectionPeriod = changeTimestamp - this->injOpenTimestamp;
+    this->injOpenTimestamp = changeTimestamp;
     this->totalInjectionPulses += 1;
   }
   else
   {
-    uint64_t delta = esp_timer_get_time() - this->injOpenTimestamp;
+    uint32_t delta = changeTimestamp - this->injOpenTimestamp;
 
     if (delta < INJ_DELTA_MAX)
     {
@@ -83,11 +83,11 @@ void IRAM_ATTR Trip::updateTripInjISR(void*)
 void Trip::vssPulse()
 {
   uint64_t pulseTimestamp = esp_timer_get_time();
-  uint64_t delta = pulseTimestamp - this->latestVssTimestamp;
+  uint32_t delta = pulseTimestamp - this->latestVssTimestamp;
   if (delta < VSS_DELTA_MAX)
     this->latestVssPeriod = delta;
   this->totalVssPulses += 1;
-  this->latestVssTimestamp = esp_timer_get_time();
+  this->latestVssTimestamp = pulseTimestamp;
 }
 
 void IRAM_ATTR Trip::updateTripVssISR(void*)
@@ -110,12 +110,12 @@ void IRAM_ATTR Trip::updateTripVssISR(void*)
  *
  * @return the current engine RPM
  */
-uint16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 60000000 / this->latestInjectionPeriod : 0; }
+uint_fast16_t Trip::getRpm(void) { return (this->latestInjectionPeriod > 0) ? 60000000 / this->latestInjectionPeriod : 0; }
 
 /**
  * Calculates the total fuel spent
  */
-float Trip::getLiters(void) { return this->totalInjectionTime / INJ_USEC_LITER; }
+float Trip::getLiters(void) { return this->totalInjectionTime * (1 / INJ_USEC_LITER); }
 
 /**
  * @brief Calculates the duty cycle on the injector
@@ -125,17 +125,17 @@ float Trip::getDuty(void) { return (this->latestInjectionPeriod > 0) ? (float) t
 /**
  * @brief Calculates momentary fuel consumption
  */
-float Trip::getLph(void) { return (3600000000.0 * getDuty()) / INJ_USEC_LITER; }
+float Trip::getLph(void) { return (3600000000.0f / INJ_USEC_LITER) * getDuty(); }
 
 /**
  * Calculates the total distance traveled in km
  */
-float Trip::getKm(void) { return this->totalVssPulses / VSS_PULSE_KM; }
+float Trip::getKm(void) { return this->totalVssPulses * (1 / VSS_PULSE_KM); }
 
 /**
  * Calculates the velocity in km/h
  */
-float Trip::getKmh(void) { return (esp_timer_get_time() - this->latestVssTimestamp > VSS_DELTA_MAX) ? 0 : (this->getVel() / VSS_PULSE_KM) * 3600; }
+float Trip::getKmh(void) { return (esp_timer_get_time() - this->latestVssTimestamp > VSS_DELTA_MAX) ? 0 : ( 3600/VSS_PULSE_KM ) * this->getVel(); }
 
 /**
  * @brief Calculates the momentary fuel efficiency
@@ -158,4 +158,4 @@ float Trip::getEfficiency() {
  *
  * @return the amount of VSS pulses per second based on the latest period
  */
-float Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000.0 / this->latestVssPeriod : 0; }
+float Trip::getVel() { return (this->latestVssPeriod > 0) ? 1000000.0f / this->latestVssPeriod : 0; }

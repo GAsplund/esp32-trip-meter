@@ -12,13 +12,13 @@
 // The maximum allowed time between opening and closing the injector
 #define INJ_DELTA_MAX 500000
 // Amount of time for an injector to have injected 1 liter of fuel
-#define INJ_USEC_LITER 53454766.0
+#define INJ_USEC_LITER 53454766.0f
 
 // The maximum allowed time between VSS pulses to calculate velocity
 #define VSS_DELTA_MAX 5000000
 
 // Amount of VSS pulses to have travelled 1 Km
-#define VSS_PULSE_KM 6840.0
+#define VSS_PULSE_KM 6840.0f
 
 /*
  * Bluetooth parameters
