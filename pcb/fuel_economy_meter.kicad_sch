@@ -557,7 +557,7 @@
   (symbol (lib_id "Device:C") (at 100.33 31.75 90) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 584f502d-9d89-4574-81cb-04c8a3a6d3de)
-    (property "Reference" "C2" (id 0) (at 99.06 30.4769 90)
+    (property "Reference" "C1" (id 0) (at 99.06 30.4769 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "0.01uF" (id 1) (at 99.06 27.94 90)
@@ -576,7 +576,7 @@
   (symbol (lib_id "Device:D_Zener") (at 142.24 72.39 270) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 62ec3c16-b777-42de-8733-6fc54a481a12)
-    (property "Reference" "D1" (id 0) (at 140.208 73.2247 90)
+    (property "Reference" "D2" (id 0) (at 140.208 73.2247 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "3V" (id 1) (at 140.208 70.6878 90)
@@ -595,7 +595,7 @@
   (symbol (lib_id "Device:R") (at 87.63 36.83 270) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 76b7f11b-38aa-483a-8520-a14eca6a2c2a)
-    (property "Reference" "R6" (id 0) (at 87.63 41.5458 90))
+    (property "Reference" "R2" (id 0) (at 87.63 41.5458 90))
     (property "Value" "50K" (id 1) (at 87.63 39.0089 90))
     (property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" (id 2) (at 87.63 35.052 90)
       (effects (font (size 1.27 1.27)) hide)
@@ -648,7 +648,7 @@
   (symbol (lib_id "Device:D_Zener") (at 100.33 36.83 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid dcd1ae19-5b31-4307-be70-5d1edee18fb2)
-    (property "Reference" "D2" (id 0) (at 101.1647 38.862 90)
+    (property "Reference" "D1" (id 0) (at 101.1647 38.862 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "3V" (id 1) (at 98.6278 38.862 90)
@@ -667,7 +667,7 @@
   (symbol (lib_id "Device:R") (at 142.24 59.69 180) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid dd91dc67-4903-4b53-ab60-5b602c406e3d)
-    (property "Reference" "R4" (id 0) (at 137.5242 59.69 90))
+    (property "Reference" "R3" (id 0) (at 137.5242 59.69 90))
     (property "Value" "50K" (id 1) (at 140.0611 59.69 90))
     (property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" (id 2) (at 144.018 59.69 90)
       (effects (font (size 1.27 1.27)) hide)
@@ -682,7 +682,7 @@
   (symbol (lib_id "Device:R") (at 87.63 25.4 270) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid f29a79cd-94fc-4fdd-91fe-0945a7276a6b)
-    (property "Reference" "R5" (id 0) (at 87.63 30.1158 90))
+    (property "Reference" "R1" (id 0) (at 87.63 30.1158 90))
     (property "Value" "50K" (id 1) (at 87.63 27.5789 90))
     (property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" (id 2) (at 87.63 23.622 90)
       (effects (font (size 1.27 1.27)) hide)
@@ -697,7 +697,7 @@
   (symbol (lib_id "ESP32_Devkit:ESP32-DEVKIT-V1") (at 182.88 50.8 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid f621143c-13d3-4a78-902b-8ef71313a59a)
-    (property "Reference" "U2" (id 0) (at 182.88 19.1602 0))
+    (property "Reference" "U1" (id 0) (at 182.88 19.1602 0))
     (property "Value" "ESP32-DEVKIT-V1" (id 1) (at 182.88 21.6971 0))
     (property "Footprint" "ESP32_Devkit:MODULE_ESP32_DEVKIT_V1" (id 2) (at 182.88 50.8 0)
       (effects (font (size 1.27 1.27)) (justify bottom) hide)
@@ -755,12 +755,12 @@
 
   (symbol_instances
     (path "/584f502d-9d89-4574-81cb-04c8a3a6d3de"
-      (reference "C2") (unit 1) (value "0.01uF") (footprint "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder")
-    )
-    (path "/62ec3c16-b777-42de-8733-6fc54a481a12"
-      (reference "D1") (unit 1) (value "3V") (footprint "Diode_SMD:D_SOD-123")
+      (reference "C1") (unit 1) (value "0.01uF") (footprint "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder")
     )
     (path "/dcd1ae19-5b31-4307-be70-5d1edee18fb2"
+      (reference "D1") (unit 1) (value "3V") (footprint "Diode_SMD:D_SOD-123")
+    )
+    (path "/62ec3c16-b777-42de-8733-6fc54a481a12"
       (reference "D2") (unit 1) (value "3V") (footprint "Diode_SMD:D_SOD-123")
     )
     (path "/7f1ac8d2-3271-4e75-81af-9d6033e568f4"
@@ -769,17 +769,17 @@
     (path "/ce9a884c-6008-41d4-a8fa-9ffee721d9c0"
       (reference "J2") (unit 1) (value "Conn_01x02_Female") (footprint "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical")
     )
-    (path "/dd91dc67-4903-4b53-ab60-5b602c406e3d"
-      (reference "R4") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
-    )
     (path "/f29a79cd-94fc-4fdd-91fe-0945a7276a6b"
-      (reference "R5") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
+      (reference "R1") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
     )
     (path "/76b7f11b-38aa-483a-8520-a14eca6a2c2a"
-      (reference "R6") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
+      (reference "R2") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
+    )
+    (path "/dd91dc67-4903-4b53-ab60-5b602c406e3d"
+      (reference "R3") (unit 1) (value "50K") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
     )
     (path "/f621143c-13d3-4a78-902b-8ef71313a59a"
-      (reference "U2") (unit 1) (value "ESP32-DEVKIT-V1") (footprint "ESP32_Devkit:MODULE_ESP32_DEVKIT_V1")
+      (reference "U1") (unit 1) (value "ESP32-DEVKIT-V1") (footprint "ESP32_Devkit:MODULE_ESP32_DEVKIT_V1")
     )
   )
 )
