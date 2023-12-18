@@ -2,6 +2,7 @@
 #![no_main]
 
 mod freq_cnt;
+mod elm_327;
 
 use esp_backtrace as _;
 use esp_println::println;
