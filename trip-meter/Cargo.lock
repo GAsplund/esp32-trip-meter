@@ -1071,6 +1071,7 @@ dependencies = [
 name = "trip-meter"
 version = "0.1.0"
 dependencies = [
+ "critical-section",
  "embedded-io 0.4.0",
  "embedded-svc 0.25.3",
  "esp-backtrace",

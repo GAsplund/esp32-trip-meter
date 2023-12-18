@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+mod freq_cnt;
+
 use esp_backtrace as _;
 use esp_println::println;
 use hal::{clock::ClockControl, peripherals::Peripherals, prelude::*, Delay};
