@@ -123,7 +123,7 @@ void ELM327::poll(void)
     }
     else if (pid == "14")
     {
-      OBDReturn = "61" + pid + converttohex(trip->latestInjectionTime, 4);
+      OBDReturn = "61" + pid + converttohex(trip->latestInjectionDutyTime, 4);
     }
     stream->println(OBDReturn);
   }

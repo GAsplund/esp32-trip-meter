@@ -15,7 +15,7 @@ void LogStream::log()
   float lph = trip->getLph();
   float eff = trip->getEfficiency();
 
-  stream->print(trip->latestInjectionTime);
+  stream->print(trip->latestInjectionDutyTime);
   stream->print(" uS/inj ");
   stream->print(trip->getRpm());
   stream->print(" RPM ");

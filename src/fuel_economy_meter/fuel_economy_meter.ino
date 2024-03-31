@@ -4,8 +4,8 @@
 #include "log_stream.h"
 
 static Trip trip;
-//static ELM327 elm327;
-static LogStream logStream;
+static ELM327 elm327;
+//static LogStream logStream;
 
 void setup()
 {
@@ -14,15 +14,16 @@ void setup()
   setupBT();
   Serial.println("Trip");
   trip.begin();
-  //elm327.begin(&SerialBT, &trip);
-  Serial.println("LogStream");
-  logStream.begin(&SerialBT, &trip);
+  elm327.begin(&SerialBT, &trip);
+  //Serial.println("LogStream");
+  //logStream.begin(&Serial, &trip);
 
   Serial.println("Setup done");
 }
 
 void loop()
 {
-  delay(1000);
-  logStream.log();
+  //delay(1000);
+  //logStream.log();
+  elm327.poll();
 }
